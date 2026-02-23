@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Budget App Architecture</title>
+<style>
+    body {
+        margin: 0;
+        padding: 20px;
+        background: #0a0a0a;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        min-height: 100vh;
+        font-family: 'Segoe UI', sans-serif;
+    }
+</style>
+</head>
+<body>
+<svg width="1200" height="800" viewBox="0 0 1200 800" xmlns="http://www.w3.org/2000/svg">
+    <!-- Background -->
+    <rect width="1200" height="800" fill="#0a0a0a"/>
+    
+    <!-- Title -->
+    <text x="600" y="40" font-size="32" font-weight="bold" fill="#c9a44c" text-anchor="middle">
+        Budget App - Serverless 3-Tier Architecture
+    </text>
+    
+    <!-- Tier Labels -->
+    <text x="100" y="120" font-size="18" font-weight="bold" fill="#888" text-anchor="start">TIER 1</text>
+    <text x="100" y="320" font-size="18" font-weight="bold" fill="#888" text-anchor="start">TIER 2</text>
+    <text x="100" y="580" font-size="18" font-weight="bold" fill="#888" text-anchor="start">TIER 3</text>
+    
+    <!-- Tier 1 - Presentation Layer -->
+    <rect x="200" y="80" width="900" height="180" rx="10" fill="#1a1a1a" stroke="#c9a44c" stroke-width="2"/>
+    <text x="650" y="110" font-size="20" font-weight="bold" fill="#c9a44c" text-anchor="middle">Presentation Layer</text>
+    
+    <!-- User -->
+    <circle cx="280" cy="170" r="30" fill="#2d2d2d" stroke="#4a9eff" stroke-width="2"/>
+    <text x="280" y="178" font-size="24" fill="#4a9eff" text-anchor="middle">👤</text>
+    <text x="280" y="220" font-size="14" fill="#fff" text-anchor="middle">User</text>
+    
+    <!-- S3 Bucket -->
+    <rect x="450" y="140" width="180" height="80" rx="8" fill="#ff9900" stroke="#ff9900" stroke-width="2"/>
+    <text x="540" y="165" font-size="16" font-weight="bold" fill="#000" text-anchor="middle">Amazon S3</text>
+    <text x="540" y="185" font-size="13" fill="#000" text-anchor="middle">Static Website</text>
+    <text x="540" y="205" font-size="11" fill="#000" text-anchor="middle">login.html | register.html</text>
+    
+    <!-- CloudFront (Optional) -->
+    <rect x="750" y="140" width="180" height="80" rx="8" fill="#8c4fff" stroke="#8c4fff" stroke-width="2"/>
+    <text x="840" y="165" font-size="16" font-weight="bold" fill="#fff" text-anchor="middle">CloudFront</text>
+    <text x="840" y="185" font-size="13" fill="#fff" text-anchor="middle">(Optional CDN)</text>
+    <text x="840" y="205" font-size="11" fill="#fff" text-anchor="middle">Global Distribution</text>
+    
+    <!-- Arrow User to S3 -->
+    <path d="M 310 170 L 440 170" stroke="#4a9eff" stroke-width="2" fill="none" marker-end="url(#arrowblue)"/>
+    <text x="375" y="160" font-size="12" fill="#4a9eff">HTTPS</text>
+    
+    <!-- Arrow S3 to CloudFront -->
+    <path d="M 630 180 L 740 180" stroke="#888" stroke-width="2" fill="none" stroke-dasharray="5,5"/>
+    
+    <!-- Tier 2 - Application Layer -->
+    <rect x="200" y="280" width="900" height="260" rx="10" fill="#1a1a1a" stroke="#c9a44c" stroke-width="2"/>
+    <text x="650" y="310" font-size="20" font-weight="bold" fill="#c9a44c" text-anchor="middle">Application Layer</text>
+    
+    <!-- API Gateway -->
+    <rect x="280" y="340" width="200" height="100" rx="8" fill="#ff4f8b" stroke="#ff4f8b" stroke-width="2"/>
+    <text x="380" y="370" font-size="16" font-weight="bold" fill="#fff" text-anchor="middle">API Gateway</text>
+    <text x="380" y="395" font-size="12" fill="#fff" text-anchor="middle">REST API</text>
+    <text x="380" y="415" font-size="11" fill="#fff" text-anchor="middle">/register | /login</text>
+    <text x="380" y="430" font-size="11" fill="#fff" text-anchor="middle">/budget</text>
+    
+    <!-- Lambda Function -->
+    <rect x="600" y="340" width="200" height="100" rx="8" fill="#ff9900" stroke="#ff9900" stroke-width="2"/>
+    <text x="700" y="370" font-size="16" font-weight="bold" fill="#000" text-anchor="middle">AWS Lambda</text>
+    <text x="700" y="395" font-size="12" fill="#000" text-anchor="middle">BudgetAPI Function</text>
+    <text x="700" y="415" font-size="11" fill="#000" text-anchor="middle">Node.js 18.x</text>
+    <text x="700" y="430" font-size="11" fill="#000" text-anchor="middle">Business Logic</text>
+    
+    <!-- IAM Role -->
+    <rect x="860" y="360" width="160" height="60" rx="8" fill="#dd344c" stroke="#dd344c" stroke-width="2"/>
+    <text x="940" y="385" font-size="14" font-weight="bold" fill="#fff" text-anchor="middle">IAM Role</text>
+    <text x="940" y="405" font-size="11" fill="#fff" text-anchor="middle">Permissions</text>
+    
+    <!-- Arrow S3 to API Gateway -->
+    <path d="M 540 220 L 380 340" stroke="#4a9eff" stroke-width="2" fill="none" marker-end="url(#arrowblue)"/>
+    <text x="440" y="270" font-size="12" fill="#4a9eff">API Calls</text>
+    
+    <!-- Arrow API Gateway to Lambda -->
+    <path d="M 480 390 L 590 390" stroke="#fff" stroke-width="3" fill="none" marker-end="url(#arrowwhite)"/>
+    <text x="535" y="380" font-size="12" fill="#fff">Invoke</text>
+    
+    <!-- Arrow Lambda to IAM -->
+    <path d="M 800 390 L 850 390" stroke="#888" stroke-width="2" fill="none" stroke-dasharray="5,5"/>
+    
+    <!-- Tier 3 - Data Layer -->
+    <rect x="200" y="560" width="900" height="200" rx="10" fill="#1a1a1a" stroke="#c9a44c" stroke-width="2"/>
+    <text x="650" y="590" font-size="20" font-weight="bold" fill="#c9a44c" text-anchor="middle">Data Layer</text>
+    
+    <!-- DynamoDB - Users -->
+    <rect x="320" y="620" width="220" height="100" rx="8" fill="#4053d6" stroke="#4053d6" stroke-width="2"/>
+    <text x="430" y="650" font-size="16" font-weight="bold" fill="#fff" text-anchor="middle">DynamoDB</text>
+    <text x="430" y="675" font-size="14" fill="#fff" text-anchor="middle">Users Table</text>
+    <text x="430" y="695" font-size="11" fill="#fff" text-anchor="middle">PK: username</text>
+    <text x="430" y="710" font-size="11" fill="#fff" text-anchor="middle">Authentication Data</text>
+    
+    <!-- DynamoDB - Budget -->
+    <rect x="660" y="620" width="220" height="100" rx="8" fill="#4053d6" stroke="#4053d6" stroke-width="2"/>
+    <text x="770" y="650" font-size="16" font-weight="bold" fill="#fff" text-anchor="middle">DynamoDB</text>
+    <text x="770" y="675" font-size="14" fill="#fff" text-anchor="middle">BudgetData Table</text>
+    <text x="770" y="695" font-size="11" fill="#fff" text-anchor="middle">PK: userId | SK: yearMonth</text>
+    <text x="770" y="710" font-size="11" fill="#fff" text-anchor="middle">Income & Expenses</text>
+    
+    <!-- Arrow Lambda to DynamoDB Users -->
+    <path d="M 650 440 L 430 620" stroke="#4a9eff" stroke-width="2" fill="none" marker-end="url(#arrowblue)"/>
+    <text x="520" y="520" font-size="12" fill="#4a9eff">Read/Write</text>
+    
+    <!-- Arrow Lambda to DynamoDB Budget -->
+    <path d="M 750 440 L 770 620" stroke="#4a9eff" stroke-width="2" fill="none" marker-end="url(#arrowblue)"/>
+    <text x="780" y="520" font-size="12" fill="#4a9eff">Read/Write</text>
+    
+    <!-- Legend -->
+    <rect x="50" y="680" width="120" height="80" rx="5" fill="#1a1a1a" stroke="#555" stroke-width="1"/>
+    <text x="110" y="700" font-size="14" font-weight="bold" fill="#c9a44c" text-anchor="middle">Legend</text>
+    <line x1="60" y1="715" x2="90" y2="715" stroke="#4a9eff" stroke-width="2" marker-end="url(#arrowblue)"/>
+    <text x="100" y="720" font-size="11" fill="#fff">Data Flow</text>
+    <line x1="60" y1="735" x2="90" y2="735" stroke="#888" stroke-width="2" stroke-dasharray="5,5"/>
+    <text x="100" y="740" font-size="11" fill="#fff">Optional</text>
+    
+    <!-- Arrow Markers -->
+    <defs>
+        <marker id="arrowblue" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto" markerUnits="strokeWidth">
+            <path d="M0,0 L0,6 L9,3 z" fill="#4a9eff"/>
+        </marker>
+        <marker id="arrowwhite" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto" markerUnits="strokeWidth">
+            <path d="M0,0 L0,6 L9,3 z" fill="#fff"/>
+        </marker>
+    </defs>
+    
+    <!-- Benefits Box -->
+    <rect x="950" y="80" width="200" height="180" rx="8" fill="#1a1a1a" stroke="#4caf50" stroke-width="2"/>
+    <text x="1050" y="105" font-size="16" font-weight="bold" fill="#4caf50" text-anchor="middle">Benefits</text>
+    <text x="960" y="130" font-size="12" fill="#fff">✓ Serverless</text>
+    <text x="960" y="150" font-size="12" fill="#fff">✓ Auto-scaling</text>
+    <text x="960" y="170" font-size="12" fill="#fff">✓ Pay-per-use</text>
+    <text x="960" y="190" font-size="12" fill="#fff">✓ High availability</text>
+    <text x="960" y="210" font-size="12" fill="#fff">✓ Multi-tenant</text>
+    <text x="960" y="230" font-size="12" fill="#fff">✓ Secure</text>
+    <text x="960" y="250" font-size="12" fill="#fff">✓ Low cost</text>
+</svg>
+</body>
+</html>

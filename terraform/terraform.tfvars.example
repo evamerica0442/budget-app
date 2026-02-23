@@ -1,0 +1,4 @@
+# Copy this file to terraform.tfvars and update with your values
+
+aws_region  = "us-east-1"
+bucket_name = "my-budget-app-unique-name"  # Must be globally unique

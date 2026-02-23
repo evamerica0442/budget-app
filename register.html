@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Register | Budget App</title>
+<style>
+    body {
+        font-family: 'Segoe UI', sans-serif;
+        background: linear-gradient(135deg, #0f0f0f, #1a1a1a);
+        color: #eaeaea;
+        margin: 0;
+        padding: 0;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        height: 100vh;
+    }
+
+    .register-box {
+        background: #121212;
+        border-radius: 14px;
+        padding: 40px;
+        box-shadow: 0 20px 50px rgba(0,0,0,0.8);
+        width: 350px;
+    }
+
+    h1 {
+        text-align: center;
+        color: #c9a44c;
+        margin-bottom: 30px;
+    }
+
+    input {
+        width: 100%;
+        background: #1e1e1e;
+        border: 1px solid #333;
+        color: #fff;
+        padding: 12px;
+        border-radius: 6px;
+        margin-bottom: 15px;
+        box-sizing: border-box;
+    }
+
+    button {
+        width: 100%;
+        background: #c9a44c;
+        color: #000;
+        border: none;
+        padding: 12px;
+        border-radius: 6px;
+        font-weight: bold;
+        cursor: pointer;
+        font-size: 16px;
+    }
+
+    button:hover {
+        background: #d4b05e;
+    }
+
+    .error {
+        color: #f44336;
+        text-align: center;
+        margin-top: 10px;
+        display: none;
+    }
+
+    .success {
+        color: #4caf50;
+        text-align: center;
+        margin-top: 10px;
+        display: none;
+    }
+</style>
+</head>
+<body>
+
+<div class="register-box">
+    <h1>REGISTER</h1>
+    <input type="text" id="username" placeholder="Username">
+    <input type="password" id="password" placeholder="Password">
+    <input type="password" id="confirmPassword" placeholder="Confirm Password">
+    <button onclick="register()">Register</button>
+    <div class="error" id="error"></div>
+    <div class="success" id="success">Registration successful! Redirecting...</div>
+    <div style="text-align:center; margin-top:20px;">
+        <a href="login.html" style="color:#c9a44c; text-decoration:none;">Already have an account? Login</a>
+    </div>
+</div>
+
+<script src="config.js"></script>
+<script>
+async function register() {
+    const username = document.getElementById('username').value;
+    const password = document.getElementById('password').value;
+    const confirmPassword = document.getElementById('confirmPassword').value;
+
+    document.getElementById('error').style.display = 'none';
+    document.getElementById('success').style.display = 'none';
+
+    if (!username || !password || !confirmPassword) {
+        document.getElementById('error').textContent = 'Please fill all fields';
+        document.getElementById('error').style.display = 'block';
+        return;
+    }
+
+    if (password !== confirmPassword) {
+        document.getElementById('error').textContent = 'Passwords do not match';
+        document.getElementById('error').style.display = 'block';
+        return;
+    }
+
+    if (password.length < 6) {
+        document.getElementById('error').textContent = 'Password must be at least 6 characters';
+        document.getElementById('error').style.display = 'block';
+        return;
+    }
+
+    try {
+        const response = await fetch(`${CONFIG.API_URL}/register`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ username, password })
+        });
+
+        const data = await response.json();
+
+        if (data.success) {
+            document.getElementById('success').style.display = 'block';
+            setTimeout(() => {
+                window.location.href = 'login.html';
+            }, 2000);
+        } else {
+            document.getElementById('error').textContent = data.error || 'Registration failed';
+            document.getElementById('error').style.display = 'block';
+        }
+    } catch (error) {
+        document.getElementById('error').textContent = 'Registration failed. Please try again.';
+        document.getElementById('error').style.display = 'block';
+    }
+}
+
+document.getElementById('confirmPassword').addEventListener('keypress', function(e) {
+    if (e.key === 'Enter') register();
+});
+</script>
+
+</body>
+</html>

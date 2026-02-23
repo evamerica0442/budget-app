@@ -1,0 +1,375 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Monthly Budget | ZAR</title>
+<style>
+    body {
+        font-family: 'Segoe UI', sans-serif;
+        background: linear-gradient(135deg, #0f0f0f, #1a1a1a);
+        color: #eaeaea;
+        margin: 0;
+        padding: 0;
+    }
+
+    .container {
+        max-width: 900px;
+        margin: 40px auto;
+        background: #121212;
+        border-radius: 14px;
+        padding: 30px;
+        box-shadow: 0 20px 50px rgba(0,0,0,0.8);
+    }
+
+    h1 {
+        text-align: center;
+        letter-spacing: 2px;
+        color: #c9a44c;
+    }
+
+    .month-nav {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin: 25px 0;
+    }
+
+    .month-nav button {
+        background: none;
+        border: 2px solid #c9a44c;
+        color: #c9a44c;
+        padding: 8px 16px;
+        border-radius: 6px;
+        cursor: pointer;
+        font-size: 16px;
+    }
+
+    .month-nav span {
+        font-size: 20px;
+        font-weight: bold;
+    }
+
+    .section {
+        margin-top: 30px;
+    }
+
+    .section h2 {
+        border-bottom: 1px solid #333;
+        padding-bottom: 10px;
+        color: #c9a44c;
+    }
+
+    .row {
+        display: flex;
+        gap: 10px;
+        margin-top: 10px;
+    }
+
+    input, button {
+        background: #1e1e1e;
+        border: 1px solid #333;
+        color: #fff;
+        padding: 10px;
+        border-radius: 6px;
+        flex: 1;
+    }
+
+    button.add {
+        flex: 0.5;
+        background: #c9a44c;
+        color: #000;
+        font-weight: bold;
+        cursor: pointer;
+    }
+
+    ul {
+        list-style: none;
+        padding: 0;
+        margin-top: 15px;
+    }
+
+    li {
+        background: #1a1a1a;
+        padding: 10px;
+        margin-bottom: 8px;
+        border-radius: 6px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        border-left: 4px solid #c9a44c;
+    }
+
+    .actions {
+        display: flex;
+        gap: 8px;
+    }
+
+    .actions button {
+        padding: 5px 10px;
+        font-size: 12px;
+        cursor: pointer;
+        border-radius: 4px;
+        border: none;
+    }
+
+    .edit-btn {
+        background: #4caf50;
+        color: #fff;
+    }
+
+    .delete-btn {
+        background: #f44336;
+        color: #fff;
+    }
+
+    .summary {
+        margin-top: 30px;
+        display: flex;
+        justify-content: space-between;
+        background: #1a1a1a;
+        padding: 20px;
+        border-radius: 10px;
+        font-size: 18px;
+    }
+
+    .positive { color: #4caf50; }
+    .negative { color: #f44336; }
+</style>
+</head>
+<body>
+
+<div class="container">
+    <h1>MONTHLY BUDGET</h1>
+
+    <div style="text-align:center; margin-bottom:20px;">
+        <a href="overview.html" style="color:#c9a44c; text-decoration:none; padding:10px 20px; border:2px solid #c9a44c; border-radius:6px; margin-right:10px;">View Overview</a>
+        <a href="details.html" style="color:#c9a44c; text-decoration:none; padding:10px 20px; border:2px solid #c9a44c; border-radius:6px;">View Details</a>
+    </div>
+
+    <div class="month-nav">
+        <button onclick="changeMonth(-1)">◀</button>
+        <span id="monthLabel"></span>
+        <button onclick="changeMonth(1)">▶</button>
+    </div>
+
+    <div class="section">
+        <h2>Income</h2>
+        <div class="row">
+            <input id="incomeDesc" placeholder="Source">
+            <input id="incomeAmount" type="number" placeholder="Amount (R)">
+            <button class="add" onclick="addIncome()">Add</button>
+        </div>
+        <ul id="incomeList"></ul>
+    </div>
+
+    <div class="section">
+        <h2>Expenses</h2>
+        <div class="row">
+            <input id="expenseDesc" placeholder="Expense">
+            <input id="expenseAmount" type="number" placeholder="Amount (R)">
+            <button class="add" onclick="addExpense()">Add</button>
+        </div>
+        <ul id="expenseList"></ul>
+    </div>
+
+    <div class="summary">
+        <div>Total Income: <strong>R <span id="totalIncome">0</span></strong></div>
+        <div>Total Expenses: <strong>R <span id="totalExpenses">0</span></strong></div>
+        <div>Balance: <strong class="" id="balance">R 0</strong></div>
+    </div>
+
+    <button onclick="exportData()" style="width:100%; margin-top:20px; background:#c9a44c; color:#000; padding:12px; border:none; border-radius:6px; cursor:pointer; font-weight:bold;">Export to Text File</button>
+</div>
+
+<script src="config.js"></script>
+<script>
+if (!sessionStorage.getItem('authenticated')) {
+    window.location.href = 'login.html';
+}
+
+let currentMonth = new Date();
+
+function getKey() {
+    return currentMonth.getFullYear() + '-' + (currentMonth.getMonth() + 1);
+}
+
+async function loadData() {
+    try {
+        const username = sessionStorage.getItem('username');
+        const response = await fetch(`${CONFIG.API_URL}/budget/${username}/${getKey()}`);
+        const data = await response.json();
+        render(data);
+    } catch (error) {
+        console.error('Error loading data:', error);
+        render({ income: [], expenses: [] });
+    }
+}
+
+async function saveData(data) {
+    try {
+        const username = sessionStorage.getItem('username');
+        await fetch(`${CONFIG.API_URL}/budget`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                userId: username,
+                yearMonth: getKey(),
+                income: data.income,
+                expenses: data.expenses
+            })
+        });
+    } catch (error) {
+        console.error('Error saving data:', error);
+    }
+}
+
+function render(data) {
+    document.getElementById('incomeList').innerHTML = '';
+    document.getElementById('expenseList').innerHTML = '';
+
+    let incomeTotal = 0;
+    let expenseTotal = 0;
+
+    data.income.forEach((i, idx) => {
+        incomeTotal += i.amount;
+        document.getElementById('incomeList').innerHTML +=
+            `<li><span>${i.desc} - R ${i.amount}</span><div class="actions"><button class="edit-btn" onclick="editIncome(${idx})">Edit</button><button class="delete-btn" onclick="deleteIncome(${idx})">Delete</button></div></li>`;
+    });
+
+    data.expenses.forEach((e, idx) => {
+        expenseTotal += e.amount;
+        document.getElementById('expenseList').innerHTML +=
+            `<li><span>${e.desc} - R ${e.amount}</span><div class="actions"><button class="edit-btn" onclick="editExpense(${idx})">Edit</button><button class="delete-btn" onclick="deleteExpense(${idx})">Delete</button></div></li>`;
+    });
+
+    document.getElementById('totalIncome').textContent = incomeTotal;
+    document.getElementById('totalExpenses').textContent = expenseTotal;
+
+    const balance = incomeTotal - expenseTotal;
+    const balanceEl = document.getElementById('balance');
+    balanceEl.textContent = `R ${balance}`;
+    balanceEl.className = balance >= 0 ? 'positive' : 'negative';
+}
+
+async function addIncome() {
+    const desc = incomeDesc.value;
+    const amount = Number(incomeAmount.value);
+    if (!desc || !amount) return;
+
+    const username = sessionStorage.getItem('username');
+    const response = await fetch(`${CONFIG.API_URL}/budget/${username}/${getKey()}`);
+    const data = await response.json();
+    data.income = data.income || [];
+    data.expenses = data.expenses || [];
+    data.income.push({ desc, amount });
+    await saveData(data);
+    await loadData();
+    incomeDesc.value = incomeAmount.value = '';
+}
+
+async function addExpense() {
+    const desc = expenseDesc.value;
+    const amount = Number(expenseAmount.value);
+    if (!desc || !amount) return;
+
+    const username = sessionStorage.getItem('username');
+    const response = await fetch(`${CONFIG.API_URL}/budget/${username}/${getKey()}`);
+    const data = await response.json();
+    data.income = data.income || [];
+    data.expenses = data.expenses || [];
+    data.expenses.push({ desc, amount });
+    await saveData(data);
+    await loadData();
+    expenseDesc.value = expenseAmount.value = '';
+}
+
+function changeMonth(offset) {
+    currentMonth.setMonth(currentMonth.getMonth() + offset);
+    updateMonthLabel();
+    loadData();
+}
+
+async function deleteIncome(idx) {
+    const username = sessionStorage.getItem('username');
+    const response = await fetch(`${CONFIG.API_URL}/budget/${username}/${getKey()}`);
+    const data = await response.json();
+    data.income.splice(idx, 1);
+    await saveData(data);
+    await loadData();
+}
+
+async function deleteExpense(idx) {
+    const username = sessionStorage.getItem('username');
+    const response = await fetch(`${CONFIG.API_URL}/budget/${username}/${getKey()}`);
+    const data = await response.json();
+    data.expenses.splice(idx, 1);
+    await saveData(data);
+    await loadData();
+}
+
+async function editIncome(idx) {
+    const username = sessionStorage.getItem('username');
+    const response = await fetch(`${CONFIG.API_URL}/budget/${username}/${getKey()}`);
+    const data = await response.json();
+    const item = data.income[idx];
+    document.getElementById('incomeDesc').value = item.desc;
+    document.getElementById('incomeAmount').value = item.amount;
+    data.income.splice(idx, 1);
+    await saveData(data);
+    await loadData();
+}
+
+async function editExpense(idx) {
+    const username = sessionStorage.getItem('username');
+    const response = await fetch(`${CONFIG.API_URL}/budget/${username}/${getKey()}`);
+    const data = await response.json();
+    const item = data.expenses[idx];
+    document.getElementById('expenseDesc').value = item.desc;
+    document.getElementById('expenseAmount').value = item.amount;
+    data.expenses.splice(idx, 1);
+    await saveData(data);
+    await loadData();
+}
+
+function updateMonthLabel() {
+    document.getElementById('monthLabel').textContent =
+        currentMonth.toLocaleString('default', { month: 'long', year: 'numeric' });
+}
+
+async function exportData() {
+    const username = sessionStorage.getItem('username');
+    const response = await fetch(`${CONFIG.API_URL}/budget/${username}/${getKey()}`);
+    const data = await response.json();
+    let text = `BUDGET REPORT - ${currentMonth.toLocaleString('default', { month: 'long', year: 'numeric' })}\n\n`;
+    
+    text += 'INCOME:\n';
+    let incomeTotal = 0;
+    data.income.forEach(i => {
+        text += `  ${i.desc}: R ${i.amount}\n`;
+        incomeTotal += i.amount;
+    });
+    text += `Total Income: R ${incomeTotal}\n\n`;
+    
+    text += 'EXPENSES:\n';
+    let expenseTotal = 0;
+    data.expenses.forEach(e => {
+        text += `  ${e.desc}: R ${e.amount}\n`;
+        expenseTotal += e.amount;
+    });
+    text += `Total Expenses: R ${expenseTotal}\n\n`;
+    
+    text += `BALANCE: R ${incomeTotal - expenseTotal}\n`;
+    
+    const blob = new Blob([text], { type: 'text/plain' });
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = `budget_${getKey()}.txt`;
+    a.click();
+}
+
+updateMonthLabel();
+loadData();
+</script>
+
+</body>
+</html>

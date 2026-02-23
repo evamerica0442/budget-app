@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Login | Budget App</title>
+<style>
+    body {
+        font-family: 'Segoe UI', sans-serif;
+        background: linear-gradient(135deg, #0f0f0f, #1a1a1a);
+        color: #eaeaea;
+        margin: 0;
+        padding: 0;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        height: 100vh;
+    }
+
+    .login-box {
+        background: #121212;
+        border-radius: 14px;
+        padding: 40px;
+        box-shadow: 0 20px 50px rgba(0,0,0,0.8);
+        width: 350px;
+    }
+
+    h1 {
+        text-align: center;
+        color: #c9a44c;
+        margin-bottom: 30px;
+    }
+
+    input {
+        width: 100%;
+        background: #1e1e1e;
+        border: 1px solid #333;
+        color: #fff;
+        padding: 12px;
+        border-radius: 6px;
+        margin-bottom: 15px;
+        box-sizing: border-box;
+    }
+
+    button {
+        width: 100%;
+        background: #c9a44c;
+        color: #000;
+        border: none;
+        padding: 12px;
+        border-radius: 6px;
+        font-weight: bold;
+        cursor: pointer;
+        font-size: 16px;
+    }
+
+    button:hover {
+        background: #d4b05e;
+    }
+
+    .error {
+        color: #f44336;
+        text-align: center;
+        margin-top: 10px;
+        display: none;
+    }
+</style>
+</head>
+<body>
+
+<div class="login-box">
+    <h1>LOGIN</h1>
+    <input type="text" id="username" placeholder="Username">
+    <input type="password" id="password" placeholder="Password">
+    <button onclick="login()">Login</button>
+    <div class="error" id="error">Invalid credentials</div>
+    <div style="text-align:center; margin-top:20px;">
+        <a href="register.html" style="color:#c9a44c; text-decoration:none;">Don't have an account? Register</a>
+    </div>
+</div>
+
+<script src="config.js"></script>
+<script>
+async function login() {
+    const username = document.getElementById('username').value;
+    const password = document.getElementById('password').value;
+
+    if (!username || !password) {
+        document.getElementById('error').textContent = 'Please enter username and password';
+        document.getElementById('error').style.display = 'block';
+        return;
+    }
+
+    try {
+        const response = await fetch(`${CONFIG.API_URL}/login`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ username, password })
+        });
+
+        const data = await response.json();
+
+        if (data.success) {
+            sessionStorage.setItem('authenticated', 'true');
+            sessionStorage.setItem('username', username);
+            window.location.href = 'budgetmain.html';
+        } else {
+            document.getElementById('error').textContent = data.error || 'Invalid credentials';
+            document.getElementById('error').style.display = 'block';
+        }
+    } catch (error) {
+        document.getElementById('error').textContent = 'Login failed. Please try again.';
+        document.getElementById('error').style.display = 'block';
+    }
+}
+
+document.getElementById('password').addEventListener('keypress', function(e) {
+    if (e.key === 'Enter') login();
+});
+</script>
+
+</body>
+</html>

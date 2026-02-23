@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Budget Overview | ZAR</title>
+<style>
+    body {
+        font-family: 'Segoe UI', sans-serif;
+        background: linear-gradient(135deg, #0f0f0f, #1a1a1a);
+        color: #eaeaea;
+        margin: 0;
+        padding: 0;
+    }
+
+    .container {
+        max-width: 1200px;
+        margin: 40px auto;
+        background: #121212;
+        border-radius: 14px;
+        padding: 30px;
+        box-shadow: 0 20px 50px rgba(0,0,0,0.8);
+    }
+
+    h1 {
+        text-align: center;
+        letter-spacing: 2px;
+        color: #c9a44c;
+    }
+
+    .nav {
+        text-align: center;
+        margin: 20px 0;
+    }
+
+    .nav a {
+        color: #c9a44c;
+        text-decoration: none;
+        padding: 10px 20px;
+        border: 2px solid #c9a44c;
+        border-radius: 6px;
+    }
+
+    .year-selector {
+        text-align: center;
+        margin: 20px 0;
+        font-size: 24px;
+        font-weight: bold;
+    }
+
+    .year-selector button {
+        background: none;
+        border: 2px solid #c9a44c;
+        color: #c9a44c;
+        padding: 8px 16px;
+        border-radius: 6px;
+        cursor: pointer;
+        margin: 0 10px;
+    }
+
+    table {
+        width: 100%;
+        border-collapse: collapse;
+        margin: 20px 0;
+    }
+
+    th, td {
+        padding: 15px;
+        text-align: left;
+        border-bottom: 1px solid #333;
+    }
+
+    th {
+        color: #c9a44c;
+        font-weight: bold;
+    }
+
+    tr:hover {
+        background: #1a1a1a;
+    }
+
+    .positive { color: #4caf50; }
+    .negative { color: #f44336; }
+
+    .yearly-summary {
+        background: #1a1a1a;
+        padding: 20px;
+        border-radius: 10px;
+        margin-top: 30px;
+        display: flex;
+        justify-content: space-around;
+        font-size: 18px;
+    }
+</style>
+</head>
+<body>
+
+<div class="container">
+    <h1>BUDGET OVERVIEW</h1>
+    
+    <div class="nav">
+        <a href="budgetmain.html">← Back to Budget</a>
+    </div>
+
+    <div class="year-selector">
+        <button onclick="changeYear(-1)">◀</button>
+        <span id="yearLabel"></span>
+        <button onclick="changeYear(1)">▶</button>
+    </div>
+
+    <table>
+        <thead>
+            <tr>
+                <th>Month</th>
+                <th>Income</th>
+                <th>Expenses</th>
+                <th>Balance</th>
+            </tr>
+        </thead>
+        <tbody id="monthlyData"></tbody>
+    </table>
+
+    <div class="yearly-summary">
+        <div>Total Income: <strong>R <span id="yearIncome">0</span></strong></div>
+        <div>Total Expenses: <strong>R <span id="yearExpenses">0</span></strong></div>
+        <div>Yearly Balance: <strong class="" id="yearBalance">R 0</strong></div>
+    </div>
+</div>
+
+<script src="config.js"></script>
+<script>
+if (!sessionStorage.getItem('authenticated')) {
+    window.location.href = 'login.html';
+}
+
+let currentYear = new Date().getFullYear();
+
+async function loadOverview() {
+    const months = ['January', 'February', 'March', 'April', 'May', 'June', 
+                    'July', 'August', 'September', 'October', 'November', 'December'];
+    
+    let html = '';
+    let yearIncome = 0;
+    let yearExpenses = 0;
+
+    const username = sessionStorage.getItem('username');
+    for (let idx = 0; idx < months.length; idx++) {
+        const key = currentYear + '-' + (idx + 1);
+        const response = await fetch(`${CONFIG.API_URL}/budget/${username}/${key}`);
+        const data = await response.json();
+        
+        const income = data.income.reduce((sum, i) => sum + i.amount, 0);
+        const expenses = data.expenses.reduce((sum, e) => sum + e.amount, 0);
+        const balance = income - expenses;
+
+        yearIncome += income;
+        yearExpenses += expenses;
+
+        html += `<tr>
+            <td>${months[idx]}</td>
+            <td>R ${income}</td>
+            <td>R ${expenses}</td>
+            <td class="${balance >= 0 ? 'positive' : 'negative'}">R ${balance}</td>
+        </tr>`;
+    }
+
+    document.getElementById('monthlyData').innerHTML = html;
+    document.getElementById('yearIncome').textContent = yearIncome;
+    document.getElementById('yearExpenses').textContent = yearExpenses;
+    
+    const yearBalance = yearIncome - yearExpenses;
+    const balanceEl = document.getElementById('yearBalance');
+    balanceEl.textContent = `R ${yearBalance}`;
+    balanceEl.className = yearBalance >= 0 ? 'positive' : 'negative';
+}
+
+function changeYear(offset) {
+    currentYear += offset;
+    document.getElementById('yearLabel').textContent = currentYear;
+    loadOverview();
+}
+
+document.getElementById('yearLabel').textContent = currentYear;
+loadOverview();
+</script>
+
+</body>
+</html>

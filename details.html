@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Budget Details | ZAR</title>
+<style>
+    body {
+        font-family: 'Segoe UI', sans-serif;
+        background: linear-gradient(135deg, #0f0f0f, #1a1a1a);
+        color: #eaeaea;
+        margin: 0;
+        padding: 0;
+    }
+
+    .container {
+        max-width: 1200px;
+        margin: 40px auto;
+        background: #121212;
+        border-radius: 14px;
+        padding: 30px;
+        box-shadow: 0 20px 50px rgba(0,0,0,0.8);
+    }
+
+    h1, h2 {
+        text-align: center;
+        color: #c9a44c;
+    }
+
+    .nav {
+        text-align: center;
+        margin: 20px 0;
+    }
+
+    .nav a, .nav button {
+        color: #c9a44c;
+        text-decoration: none;
+        padding: 10px 20px;
+        border: 2px solid #c9a44c;
+        border-radius: 6px;
+        background: none;
+        cursor: pointer;
+        margin: 0 5px;
+    }
+
+    .selector {
+        text-align: center;
+        margin: 20px 0;
+        font-size: 20px;
+        font-weight: bold;
+    }
+
+    .selector button {
+        background: none;
+        border: 2px solid #c9a44c;
+        color: #c9a44c;
+        padding: 8px 16px;
+        border-radius: 6px;
+        cursor: pointer;
+        margin: 0 10px;
+    }
+
+    .section {
+        margin: 30px 0;
+    }
+
+    table {
+        width: 100%;
+        border-collapse: collapse;
+        margin: 15px 0;
+    }
+
+    th, td {
+        padding: 12px;
+        text-align: left;
+        border-bottom: 1px solid #333;
+    }
+
+    th {
+        color: #c9a44c;
+        background: #1a1a1a;
+    }
+
+    .total-row {
+        font-weight: bold;
+        background: #1a1a1a;
+        font-size: 16px;
+    }
+
+    .positive { color: #4caf50; }
+    .negative { color: #f44336; }
+</style>
+</head>
+<body>
+
+<div class="container">
+    <h1>BUDGET DETAILS</h1>
+    
+    <div class="nav">
+        <a href="budgetmain.html">← Back to Budget</a>
+    </div>
+
+    <div class="selector">
+        <button onclick="changeYear(-1)">◀</button>
+        <span id="yearLabel"></span>
+        <button onclick="changeYear(1)">▶</button>
+    </div>
+
+    <div class="section">
+        <h2>Income</h2>
+        <table>
+            <thead>
+                <tr>
+                    <th>Description</th>
+                    <th>Amount</th>
+                </tr>
+            </thead>
+            <tbody id="incomeTable"></tbody>
+        </table>
+    </div>
+
+    <div class="section">
+        <h2>Expenses</h2>
+        <table>
+            <thead>
+                <tr>
+                    <th>Description</th>
+                    <th>Amount</th>
+                </tr>
+            </thead>
+            <tbody id="expenseTable"></tbody>
+        </table>
+    </div>
+</div>
+
+<script src="config.js"></script>
+<script>
+if (!sessionStorage.getItem('authenticated')) {
+    window.location.href = 'login.html';
+}
+
+let currentYear = new Date().getFullYear();
+
+async function loadYearDetails() {
+    const incomeMap = {};
+    const expenseMap = {};
+    
+    const username = sessionStorage.getItem('username');
+    for (let month = 1; month <= 12; month++) {
+        const key = currentYear + '-' + month;
+        const response = await fetch(`${CONFIG.API_URL}/budget/${username}/${key}`);
+        const data = await response.json();
+        
+        data.income.forEach(i => {
+            incomeMap[i.desc] = (incomeMap[i.desc] || 0) + i.amount;
+        });
+        
+        data.expenses.forEach(e => {
+            expenseMap[e.desc] = (expenseMap[e.desc] || 0) + e.amount;
+        });
+    }
+    
+    let incomeHTML = '';
+    let incomeTotal = 0;
+    Object.entries(incomeMap).forEach(([desc, amount]) => {
+        incomeHTML += `<tr><td>${desc}</td><td>R ${amount}</td></tr>`;
+        incomeTotal += amount;
+    });
+    incomeHTML += `<tr class="total-row"><td>Total Income</td><td class="positive">R ${incomeTotal}</td></tr>`;
+    
+    let expenseHTML = '';
+    let expenseTotal = 0;
+    Object.entries(expenseMap).forEach(([desc, amount]) => {
+        expenseHTML += `<tr><td>${desc}</td><td>R ${amount}</td></tr>`;
+        expenseTotal += amount;
+    });
+    expenseHTML += `<tr class="total-row"><td>Total Expenses</td><td class="negative">R ${expenseTotal}</td></tr>`;
+    
+    document.getElementById('incomeTable').innerHTML = incomeHTML;
+    document.getElementById('expenseTable').innerHTML = expenseHTML;
+}
+
+function changeYear(offset) {
+    currentYear += offset;
+    document.getElementById('yearLabel').textContent = currentYear;
+    loadYearDetails();
+}
+
+document.getElementById('yearLabel').textContent = currentYear;
+loadYearDetails();
+</script>
+
+</body>
+</html>
