@@ -7,7 +7,7 @@
 Link to Demo: http://evamerica-budget-s3bucket001.s3-website.af-south-1.amazonaws.com/
 
 Username: Demo
-Password: Demo
+Password: Demo12345
 
 
 
