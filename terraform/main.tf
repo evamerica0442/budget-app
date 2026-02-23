@@ -13,7 +13,7 @@ provider "aws" {
 
 terraform {
   backend "s3" {
-    bucket       = "evamerica0442-terraform-state-bucket-001"
+    bucket       = "YOUR-S3-BUCKET-NAME"
     key          = "budgetapp/terraform.tfstate" # path inside bucket
     region       = "us-east-1"
     encrypt      = true
