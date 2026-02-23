@@ -9,7 +9,7 @@ state locking, and disaster recovery.
 ## Current Configuration
 
 **Backend:** Amazon S3
-**Bucket:** evamerica0442-terraform-state-bucket-001
+**Bucket:** YOUR-BUCKET-NAME
 **Key:** budgetapp/terraform.tfstate
 **Region:** us-east-1
 **Encryption:** Enabled
@@ -20,16 +20,16 @@ state locking, and disaster recovery.
 ### 1. Create S3 Bucket for State (One-time setup)
 
 ```bash
-aws s3 mb s3://evamerica0442-terraform-state-bucket-001 --region us-east-1
+aws s3 mb s3://YOUR-BUCKET-NAME --region us-east-1
 
 # Enable versioning
 aws s3api put-bucket-versioning \
-  --bucket evamerica0442-terraform-state-bucket-001 \
+  --bucket YOUR-BUCKET-NAME \
   --versioning-configuration Status=Enabled
 
 # Enable encryption
 aws s3api put-bucket-encryption \
-  --bucket evamerica0442-terraform-state-bucket-001 \
+  --bucket YOUR-BUCKET-NAME \
   --server-side-encryption-configuration '{
     "Rules": [{
       "ApplyServerSideEncryptionByDefault": {
@@ -109,11 +109,11 @@ terraform force-unlock <LOCK_ID>
 Restore from S3 version:
 ```bash
 aws s3api list-object-versions \
-  --bucket evamerica0442-terraform-state-bucket-001 \
+  --bucket YOUR-BUCKET-NAME \
   --prefix budgetapp/terraform.tfstate
 
 aws s3api get-object \
-  --bucket evamerica0442-terraform-state-bucket-001 \
+  --bucket YOUR-BUCKET-NAME \
   --key budgetapp/terraform.tfstate \
   --version-id <VERSION_ID> \
   terraform.tfstate.recovered
@@ -153,7 +153,7 @@ Note: State is automatically synced with S3, no manual push/pull needed.
 ## State File Structure
 
 ```
-s3://evamerica0442-terraform-state-bucket-001/
+s3://YOUR-BUCKET-NAME/
 └── budgetapp/
     └── terraform.tfstate
 ```
@@ -161,7 +161,7 @@ s3://evamerica0442-terraform-state-bucket-001/
 ## Monitoring
 
 Check state file in AWS Console:
-- S3 Console > evamerica0442-terraform-state-bucket-001
+- S3 Console > YOUR-BUCKET-NAME
 - View versions, size, last modified
 - Download for inspection (encrypted)
 
