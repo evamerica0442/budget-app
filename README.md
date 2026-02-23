@@ -39,6 +39,7 @@ Edit `terraform.tfvars`:
 aws_region  = "us-east-1"  # or your preferred region
 bucket_name = "my-budget-app-unique-name"  # Must be globally unique
 ```
+***NB*** Before you Initialize Terraform please Study ****TERRAFORM_STATE.md*****
 
 **Step 2: Initialize Terraform**
 ```bash
