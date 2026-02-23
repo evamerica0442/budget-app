@@ -4,6 +4,10 @@
 
 <img width="986" height="711" alt="image" src="https://github.com/user-attachments/assets/9784cc45-0b7e-49a5-9ebe-6e6f370f9a4f" />
 
+Link to Demo: http://evamerica-budget-s3bucket001.s3-website.af-south-1.amazonaws.com/
+
+Username: Demo
+Password: Demo
 
 
 
